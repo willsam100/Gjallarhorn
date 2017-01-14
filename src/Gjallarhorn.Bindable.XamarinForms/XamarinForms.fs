@@ -1,7 +1,9 @@
 ﻿namespace Gjallarhorn.XamarinForms
 
 open System
+open System.Diagnostics
 open System.Threading
+open System.Threading.Tasks
 
 /// Platform installation
 module Platform =
@@ -21,6 +23,36 @@ module Framework =
 
     open Xamarin.Forms
 
+    let runTask task = 
+        task
+        |> Async.AwaitIAsyncResult 
+        |> Async.Ignore
+        |> Async.Start
+
+    let runOnUi f = 
+        Action f |> Xamarin.Forms.Device.BeginInvokeOnMainThread 
+
+    let runXmarinFormsApplication (core : Framework.ApplicationCore<'Model, 'Message>) (view: Page) =
+        
+        let render (createCtx : SynchronizationContext -> ObservableBindingSource<'Message>) = 
+            view.BindingContext <- createCtx SynchronizationContext.Current
+            1       
+
+        let toApplicationSpecification : Framework.ApplicationSpecification<'Model,'Message> = 
+            { Core = { Model = core.Model ; Init = core.Init ; Update = core.Update ; Binding = core.Binding } ; Render = render } 
+
+        Gjallarhorn.Bindable.Framework.runApplication toApplicationSpecification 
+
+    let changePage (navigate: Page -> Task) (core : Framework.ApplicationCore<'Model, 'Message>) (view: Page) =
+        let changePageAndRun () =
+            runXmarinFormsApplication core view |> ignore 
+            view |> navigate |> runTask
+            Debug.WriteLine <| sprintf "Galllarhorn XF:  page change requsted on UI thread"    
+            
+        Debug.WriteLine <| sprintf "Galllarhorn XF:  Changing page"    
+        runOnUi changePageAndRun
+
+
     /// Default Xamarin Forms Application implementation
     type App(page) as self =
         inherit Application()    
@@ -33,16 +65,10 @@ module Framework =
             View : Page
         }
         with
-            member this.ToApplicationSpecification render : Framework.ApplicationSpecification<'Model,'Message> = 
-                { Core = { Model = this.Core.Model ; Init = this.Core.Init ; Update = this.Core.Update ; Binding = this.Core.Binding } ; Render = render }            
-
             member this.CreateApp() =
-                let render (createCtx : SynchronizationContext -> ObservableBindingSource<'Message>) = 
-                    this.View.BindingContext <- createCtx SynchronizationContext.Current
-                    1       
                 Platform.install ()
                 this.Core.Init ()
-                Gjallarhorn.Bindable.Framework.runApplication (this.ToApplicationSpecification render) |> ignore
+                runXmarinFormsApplication this.Core this.View |> ignore
                 App(this.View)                
 
     [<CompiledName("CreateApplicationInfo")>]

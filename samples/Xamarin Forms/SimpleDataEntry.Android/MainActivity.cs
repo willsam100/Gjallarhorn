@@ -8,17 +8,17 @@ using Android.OS;
 
 namespace SimpleDataEntry.Android
 {
-    [Activity(Label = "Android Simple Data Entry", MainLauncher = true, Icon = "@drawable/icon")]
-    public class MainActivity : global::Xamarin.Forms.Platform.Android.FormsApplicationActivity
-    {
-        protected override void OnCreate(Bundle bundle)
-        {
-            base.OnCreate(bundle);
+	[Activity(Label = "Android Simple Data Entry", MainLauncher = true, Icon = "@drawable/icon")]
+	public class MainActivity : global::Xamarin.Forms.Platform.Android.FormsApplicationActivity
+	{
+		protected override void OnCreate(Bundle bundle)
+		{
+			base.OnCreate(bundle);
 
-            global::Xamarin.Forms.Forms.Init(this, bundle);
-            Gjallarhorn.XamarinForms.Platform.Install();
-            LoadApplication(new SimpleDataEntry.App());
-        }
-    }
+			global::Xamarin.Forms.Forms.Init(this, bundle);
+			Gjallarhorn.XamarinForms.Platform.Install();
+			LoadApplication(new SimpleDataEntry.App());
+		}
+	}
 }
 

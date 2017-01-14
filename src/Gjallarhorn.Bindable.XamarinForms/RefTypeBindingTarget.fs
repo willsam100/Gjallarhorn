@@ -80,7 +80,7 @@ type internal DynTypeInfo (ownerType, getProp) =
         | Some p -> p
         | None -> base.GetDeclaredProperty(name)
     
-type internal RefTypeBindingTarget<'b>() =
+type RefTypeBindingTarget<'b>() =
     inherit ObservableBindingSource<'b>()
 
     let ownerType = typeof<ObservableBindingSource<'b>>

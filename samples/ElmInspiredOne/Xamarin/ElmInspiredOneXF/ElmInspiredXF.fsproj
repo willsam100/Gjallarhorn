@@ -12,7 +12,7 @@
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <TargetFrameworkProfile>Profile259</TargetFrameworkProfile>
     <TargetProfile>netcore</TargetProfile>
-    <TargetFSharpCoreVersion>3.259.4.0</TargetFSharpCoreVersion>
+    <TargetFSharpCoreVersion>3.259.3.1</TargetFSharpCoreVersion>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <Name>ElmInspiredXF</Name>
   </PropertyGroup>
@@ -58,6 +58,9 @@
     <Reference Include="Xamarin.Forms.Xaml">
       <HintPath>..\..\..\..\packages\build\Xamarin.Forms\lib\portable-win+net45+wp80+win81+wpa81+MonoAndroid10+MonoTouch10+Xamarin.iOS10\Xamarin.Forms.Xaml.dll</HintPath>
     </Reference>
+    <Reference Include="FSharp.Core">
+      <HintPath>..\..\..\..\..\..\..\..\Library\Frameworks\Mono.framework\Versions\4.6.2\lib\mono\Reference Assemblies\Microsoft\FSharp\.NETCore\3.259.4.0\FSharp.Core.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\src\Gjallarhorn.Bindable\Gjallarhorn.Bindable.fsproj">
@@ -71,9 +74,8 @@
       <Private>True</Private>
     </ProjectReference>
     <ProjectReference Include="..\..\ElmInspiredOne\ElmInspiredOne.fsproj">
-      <Name>ElmInspiredOne (samples\ElmInspiredOne\ElmInspiredOne\ElmInspiredOne)</Name>
-      <Project>{350db7f3-951f-4a79-a33e-b9dad42704a5}</Project>
-      <Private>True</Private>
+      <Project>{350DB7F3-951F-4A79-A33E-B9DAD42704A5}</Project>
+      <Name>ElmInspiredOne</Name>
     </ProjectReference>
   </ItemGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

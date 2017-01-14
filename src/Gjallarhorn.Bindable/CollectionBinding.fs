@@ -8,6 +8,11 @@ open System.Collections
 open System.Collections.Generic
 open System.Collections.Specialized
 
+type ModelBindingSource<'Model,'Message when 'Model : equality> = {
+    Model: IMutatable<'Model>
+    Binding: ObservableBindingSource<'Message>
+    }
+
 type internal ChangeType<'Message> =    
     | NoChanges
     | Reset
@@ -32,10 +37,10 @@ type internal BoundCollection<'Model,'Message,'Coll when 'Model : equality and '
         let args =
             match change with
             | NoChanges -> null
-            | Reset -> NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset)
-            | Add(i,item) -> NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, item, i)
-            | Remove(i,item) -> NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, item, i)
-            | Move(i,j,item) -> NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Move, [|item|], i, j)
+            | _ -> NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset)
+            //| Add(i,item) -> NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, item, i)
+            //| Remove(i,item) -> NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, item, i)
+            //| Move(i,j,item) -> NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Move, [|item|], i, j)
 
         if args <> null then
             collectionChanged.Trigger(self, args)
@@ -198,7 +203,7 @@ type internal BoundCollection<'Model,'Message,'Coll when 'Model : equality and '
 
     let sub = collection |> Signal.Subscription.create updateCollection
 
-    member this.Items with get () = (this :> IEnumerable<obj>)
+    member this.Items with get () = (internalCollection |> Seq.map (fun (a,b,c) -> box ({Model = a; Binding = b})))
 
     interface IObservable<'Message * 'Model> with   
         member __.Subscribe obs = (outputStream :> IObservable<'Message * 'Model>).Subscribe(obs)
@@ -207,59 +212,57 @@ type internal BoundCollection<'Model,'Message,'Coll when 'Model : equality and '
         member __.GetEnumerator () =
             let seq = 
                 internalCollection
-                |> Seq.map (fun (a,b,c) -> box b)
+                |> Seq.map (fun (a,b,c) -> box ({Model = a; Binding = b}))    //   box (a,b))
             seq.GetEnumerator()
 
     interface IEnumerable with
         member __.GetEnumerator () = 
             let seq = 
                 internalCollection
-                |> Seq.map (fun (a,b,c) -> box b)
+                |> Seq.map (fun (a,b,c) -> box ({Model = a; Binding = b}))    //   box (a,b))
             (seq :> IEnumerable).GetEnumerator()
 
     // We implement this for better support in WPF collection space,
     // but it should never be used
-    interface ICollection with 
-        member __.Count: int = internalCollection.Count
+    //interface ICollection with 
+    //    member __.Count: int = internalCollection.Count
             
-        member __.CopyTo(array: Array, index: int) = 
-            for i in 0 .. internalCollection.Count - 1 do
-                let (_,b,_) = internalCollection.[i]
-                array.SetValue(b, i + index)
+    //    member __.CopyTo(array: Array, index: int) = 
+    //        for i in 0 .. internalCollection.Count - 1 do
+    //            let (_,b,_) = internalCollection.[i]
+    //            array.SetValue(b, i + index)
 
-        member __.SyncRoot = (internalCollection :> ICollection).SyncRoot
-        member __.IsSynchronized = false            
+    //    member __.SyncRoot = (internalCollection :> ICollection).SyncRoot
+    //    member __.IsSynchronized = false            
 
-    interface IList with
-        member __.Add(value: obj): int = failwith "Not implemented"
-        member __.Insert(index: int, value: obj) =  failwith "Not implemented"
-        member __.Clear(): unit = failwith "Not implemented"
+    //interface IList with
+    //    member __.Add(value: obj): int = failwith "Not implemented"
+    //    member __.Insert(index: int, value: obj) =  failwith "Not implemented"
+    //    member __.Clear(): unit = failwith "Not implemented"
         
-        member __.Contains(value: obj) = 
-            internalCollection
-            |> Seq.tryFind (fun (_,b,_) -> b.Equals(value))
-            |> Option.isSome
+    //    member __.Contains(value: obj) = 
+    //        internalCollection
+    //        |> Seq.tryFind (fun (_,b,_) -> b.Equals(value))
+    //        |> Option.isSome
 
-        member __.IndexOf(value: obj) = 
-            let i = 
-                internalCollection
-                |> Seq.tryFindIndex (fun (_,b,_) -> b.Equals(value))
-            defaultArg i -1
+    //    member __.IndexOf(value: obj) = 
+    //        let i = 
+    //            internalCollection
+    //            |> Seq.tryFindIndex (fun (_,b,_) -> b.Equals(value))
+    //        defaultArg i -1
 
-        member __.IsFixedSize = false
-        member __.IsReadOnly = false
+    //    member __.IsFixedSize = false
+    //    member __.IsReadOnly = false
             
-        member __.Item
-            with get (index: int): obj = 
-                let (_,b,_) = internalCollection.[index]
-                box b
-            and set (index: int) (v: obj): unit =  failwith "Not implemented"
+    //    member __.Item
+    //        with get (index: int): obj = 
+    //            let (_,b,_) = internalCollection.[index]
+    //            box b
+    //        and set (index: int) (v: obj): unit =  failwith "Not implemented"
 
-        member __.Remove(value: obj): unit = failwith "Not implemented"
-        member __.RemoveAt(index: int): unit = failwith "Not implemented"
+    //    member __.Remove(value: obj): unit = failwith "Not implemented"
+    //    member __.RemoveAt(index: int): unit = failwith "Not implemented"
         
-        
-
     interface INotifyCollectionChanged with
         [<CLIEvent>]
         member __.CollectionChanged = collectionChanged.Publish

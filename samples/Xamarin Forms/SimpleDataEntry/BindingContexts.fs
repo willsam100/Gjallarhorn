@@ -45,10 +45,10 @@ module BindingContexts =
         
         // Create our edit source
         // results implements IObservable<int>
-        let results = createEditSource initialValue validation
+        let results: ObservableBindingSource<int> = createEditSource initialValue validation
 
         // Create our reporting target
-        let reporting = createReportingSource initialValue results
+        let reporting: BindingSource = createReportingSource initialValue results
 
         // Set it as our binding context
         source |> Binding.constantToView "EditSource" results
